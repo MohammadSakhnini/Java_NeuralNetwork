@@ -102,4 +102,24 @@ public class ArrayUtil {
 	}
     }
 
+    public static double[] toArray(double[][] input) {
+	double[] out = new double[input.length * input[0].length];
+	for (int i = 0; i < input.length; i++) {
+	    for (int j = 0; j < input[i].length; j++) {
+		out[i + (j * input.length)] = input[i][j];
+	    }
+	}
+	return out;
+    }
+
+    public static double[][] neutralArray(int rows, int columns) {
+	double[][] results = new double[rows][columns];
+	for (int i = 0; i < rows; i++) {
+	    for (int j = 0; j < columns; j++) {
+		results[i][j] = 1;
+	    }
+	}
+	return results;
+    }
+
 }

@@ -26,7 +26,7 @@ public abstract class Layer {
     }
 
     /**
-     * @implNote the neurons of the layer must be equal to the output neurons of the
+     * @implNote the inputs of the layer must be equal to the output neurons of the
      *           previous layer
      * 
      * @param inputs     Number of inputs in the layer
@@ -53,6 +53,9 @@ public abstract class Layer {
     }
 
     private void setup() {
+	if (generator == null) {
+	    return;
+	}
 	switch (generator) {
 	case Random:
 	    random_weights_Init();
@@ -103,6 +106,9 @@ public abstract class Layer {
     }
 
     public void activationFunction() {
+	if (activation == null) {
+	    return;
+	}
 	Function<Double, Double> function = null;
 	switch (activation) {
 	case Relu:
@@ -118,8 +124,8 @@ public abstract class Layer {
 	    function = ActivationFunctions::tanh;
 	    break;
 	}
-	for (int i = 0; i < neurons.length; i++) {
-	    for (int j = 0; j < neurons[0].length; j++) {
+	for (int i = 0; i < output.length; i++) {
+	    for (int j = 0; j < output[0].length; j++) {
 		output[i][j] = function.apply(output[i][j]);
 	    }
 
@@ -128,6 +134,9 @@ public abstract class Layer {
 
     public double[][] dActivationFunction(double[][] arr) {
 	Function<double[][], double[][]> function = null;
+	if (activation == null) {
+	    return null;
+	}
 	switch (activation) {
 	case Relu:
 	    function = ActivationFunctions::dRelu;

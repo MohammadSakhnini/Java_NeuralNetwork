@@ -15,6 +15,9 @@ public class HiddenLayer extends Layer {
     public void forward(double[][] inputs) {
 	setNeurons(inputs);
 	setOutput(ArrayUtil.multiply(inputs, super.getWeights()));
+	if (super.getBias() != null) {
+	    ArrayUtil.add(super.getOutput(), super.getBias());
+	}
     }
 
 }

@@ -1,11 +1,21 @@
 public class OutputLayer extends Layer {
 
-    public OutputLayer(int input,int output, WeightGenerator generator, ActivationFunction activation) {
-	super(input, output, generator, activation);
+    private int input, output;
+
+    public OutputLayer(int input, int output, ActivationFunction activation) {
+	super(input, output, null, activation);
+	this.input = input;
+	this.output = output;
+
     }
-    public double[][] getOutput()
-    {
-	return super.getOutput();
+
+    public double[] getNeurons1D() {
+	return ArrayUtil.toArray(getNeurons());
+    }
+
+    public void reshape() {
+	var temp = ArrayUtil.neutralArray(input, output);
+	setNeurons(ArrayUtil.multiply(super.getNeurons(), temp));
     }
 
 }
