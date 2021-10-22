@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 
 public class NeuralNetwork {
     private ArrayList<Layer> layers;
@@ -16,45 +16,73 @@ public class NeuralNetwork {
 		throw new RuntimeException("First layer has to be the input layer");
 	    }
 	}
-	if (layer.getClass().equals(OutputLayer.class)) {
-	    throw new RuntimeException("Output layer already exists");
+	for (Layer temp : layers) {
+	    if ((temp.getClass().equals(OutputLayer.class))) {
+		throw new RuntimeException("Invalid structre, Outputlayer must come last");
+
+	    }
 	}
 	layers.add(layer);
     }
 
-    public void outputLayer(int neurons, ActivationFunction activation) {
-	layers.add(new OutputLayer(lastLayer().getNeuronsCount(), neurons, activation));
+    public OutputLayer addOutputLayer(int neurons, ActivationFunction activation) {
+	var temp = new OutputLayer(lastLayer().getNeuronsCount(), neurons, activation);
+	layers.add(temp);
+	return temp;
     }
 
     public void train(double[][] target) throws Exception {
 	checkLayers();
 	double[][] output = null;
-	OutputLayer output_Layer = (OutputLayer) lastLayer();
 
 	for (var layer : layers) {
-	    if (layer instanceof OutputLayer) {
-		output_Layer.setNeurons(output);
-		output_Layer.setOutput(output);
-		output_Layer.reshape();
-
-	    }
 	    if (layer instanceof InputLayer) {
 		((InputLayer) layer).forward();
 	    }
 	    if (layer instanceof HiddenLayer) {
-		((HiddenLayer) layer).forward(output);
+		((HiddenLayer) layer).setNeurons(output);
+		((HiddenLayer) layer).forward();
+	    }
+	    if (layer instanceof OutputLayer) {
+		((OutputLayer) layer).setNeurons(output);
+		((OutputLayer) layer).setOutput(layer.getNeuronsValues());
 	    }
 	    layer.activationFunction();
 	    output = layer.getOutput();
 	}
 
-	/*
-	 * var error = ArrayUtil.subtract(target, output_Layer.getNeurons()); 
-	 * var gradient = output_Layer.dActivationFunction(output);
-	 * gradient = ArrayUtil.multiply(gradient, error); 
-	 * gradient = ArrayUtil.multiply(gradient, l_rate);
-	 * ArrayUtil.print(gradient);
-	 */
+    }
+
+    // TODO
+    private void backpropagate(double[][] target) throws Exception {
+	Collections.reverse(layers);
+
+	double[][] delta = null;
+	double[][] gradient = null;
+	int index = 0;
+	for (var layer : layers) {
+	    if (layer instanceof HiddenLayer) {
+		var adjusted_weights = ArrayUtil.add(layer.getWeights(), delta);
+		Layer prev = layers.get(index - 1);
+		prev.setBias(ArrayUtil.add(prev.getBias(), gradient));
+		((HiddenLayer) layer).setWeights(adjusted_weights);
+	    }
+	    if (layer instanceof InputLayer) {
+
+	    }
+	    var error = ArrayUtil.subtract(target, layer.getOutput());
+	    gradient = layer.dActivationFunction(layer.getOutput());
+
+	    gradient = ArrayUtil.multiply(gradient, error);
+	    gradient = ArrayUtil.multiply(gradient, l_rate);
+
+	    var trans = ArrayUtil.transpose(layer.getNeuronsValues());
+	    delta = ArrayUtil.multiply(gradient, trans);
+	    index++;
+
+	}
+	Collections.reverse(layers);
+
     }
 
     private Layer lastLayer() {
@@ -77,7 +105,7 @@ public class NeuralNetwork {
 
     private double loss(double[] target) {
 	double loss = 0;
-	var predictions = ArrayUtil.toArray(lastLayer().getNeurons());
+	var predictions = ArrayUtil.toArray(lastLayer().getNeuronsValues());
 	for (int i = 0; i < predictions.length; i++) {
 	    loss += target[i] * Math.log(predictions[i]);
 	}

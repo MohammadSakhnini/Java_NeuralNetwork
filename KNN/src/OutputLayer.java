@@ -10,12 +10,7 @@ public class OutputLayer extends Layer {
     }
 
     public double[] getNeurons1D() {
-	return ArrayUtil.toArray(getNeurons());
-    }
-
-    public void reshape() {
-	var temp = ArrayUtil.neutralArray(input, output);
-	setNeurons(ArrayUtil.multiply(super.getNeurons(), temp));
+	return ArrayUtil.toArray(getNeuronsValues());
     }
 
 }

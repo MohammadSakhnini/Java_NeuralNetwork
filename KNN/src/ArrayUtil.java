@@ -64,17 +64,19 @@ public class ArrayUtil {
     }
 
     public static double[][] multiply(double[][] a, double[][] b) {
-	double results[][] = new double[a.length][b[0].length];
+	double[][] results = new double[a.length][b[0].length];
+	if (a[0].length != b.length) {
+	    throw new IllegalArgumentException("A:Rows: " + a[0].length + " did not match B:Columns " + b.length + ".");
+	}
 
-	for (int i = 0; i < results.length; i++) {
-	    for (int j = 0; j < results[0].length; j++) {
-		double sum = 0;
-		for (int k = 0; k < a[0].length; k++) {
-		    sum += a[i][k] * b[k][j];
+	for (int i = 0; i < a.length; i++) { // aRow
+	    for (int j = 0; j < b[0].length; j++) { // bColumn
+		for (int k = 0; k < a[0].length; k++) { // aColumn
+		    results[i][j] += a[i][k] * b[k][j];
 		}
-		results[i][j] = sum;
 	    }
 	}
+
 	return results;
     }
 

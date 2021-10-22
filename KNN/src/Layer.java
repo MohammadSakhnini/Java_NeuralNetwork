@@ -1,54 +1,68 @@
 import java.util.function.Function;
 
 public abstract class Layer {
-    private double neurons[][];
+    private Neuron[][] neurons;
     private double weights[][];
-    private double bias[];
+    private double bias[][];
     private double output[][];
     private WeightGenerator generator;
     private ActivationFunction activation;
-
-    public Layer(double neurons[][], double bias[], WeightGenerator generator, ActivationFunction activation) {
-	this(neurons, generator, activation);
-	this.bias = new double[neurons.length];
-	for (int i = 0; i < bias.length; i++) {
-	    this.bias[i] = bias[i];
-	}
-	setup();
-    }
-
-    public Layer(double neurons[][], WeightGenerator generator, ActivationFunction activation) {
-	this.neurons = neurons;
-	weights = new double[neurons.length][neurons[0].length];
-	this.generator = generator;
-	this.activation = activation;
-	setup();
-    }
 
     /**
      * @implNote the inputs of the layer must be equal to the output neurons of the
      *           previous layer
      * 
-     * @param inputs     Number of inputs in the layer
-     * @param neurons    Number of neurons per hidden layer
-     * @param generator  The weight generating method
-     * @param activation The applied Activation function on this specific Layer
+     * @param inputs       Number of inputs in the layer
+     * @param neuronscount Number of neurons per hidden layer
+     * @param generator    The weight generating method
+     * @param activation   The applied Activation function on this specific Layer
      */
-    public Layer(int inputs, int neurons, WeightGenerator generator, ActivationFunction activation) {
-	this.neurons = new double[neurons][0];
-	weights = new double[inputs][neurons];
+    public Layer(int inputs, int neuronscount, WeightGenerator generator, ActivationFunction activation) {
+	double[][] temp = new double[neuronscount][0];
+	createNeurons(temp,activation);
+	weights = new double[inputs][neuronscount];
 	this.generator = generator;
 	this.activation = activation;
 	setup();
     }
 
-    public Layer(int inputs, int neurons, double bias[], WeightGenerator generator, ActivationFunction activation) {
+    public Layer(double neurons[][], int output, WeightGenerator generator, ActivationFunction activation) {
+	// this(neurons, output, generator);
+	createNeurons(neurons, activation);
+	this.activation = activation;
+	setup();
+    }
+
+    public Layer(double neurons[][], int output, WeightGenerator generator) {
+	// this.neurons = neurons;
+	createNeurons(neurons);
+	weights = new double[neurons[0].length][output];
+	this.generator = generator;
+	setup();
+    }
+
+    public Layer(double neurons[][], int output, double bias[][], WeightGenerator generator,
+	    ActivationFunction activation) {
+	// this(neurons, output, generator, activation);
+	createNeurons(neurons, bias, activation);
+	this.bias = new double[neurons.length][neurons[0].length];
+	for (int i = 0; i < bias.length; i++) {
+	    for (int j = 0; j < bias[0].length; j++) {
+		this.bias[i][j] = bias[i][j];
+	    }
+	}
+	setup();
+    }
+
+    public Layer(int inputs, int neurons, double bias[][], WeightGenerator generator, ActivationFunction activation) {
 	this(inputs, neurons, generator, activation);
 	if (bias.length != neurons) {
 	    throw new RuntimeException("neurons and bias.length are not the same size");
 	}
 	for (int i = 0; i < bias.length; i++) {
-	    this.bias[i] = bias[i];
+	    for (int j = 0; j < bias.length; j++) {
+		this.bias[i][j] = bias[i][j];
+	    }
 	}
     }
 
@@ -124,9 +138,9 @@ public abstract class Layer {
 	    function = ActivationFunctions::tanh;
 	    break;
 	}
-	for (int i = 0; i < output.length; i++) {
-	    for (int j = 0; j < output[0].length; j++) {
-		output[i][j] = function.apply(output[i][j]);
+	for (int i = 0; i < this.neurons.length; i++) {
+	    for (int j = 0; j < this.neurons[0].length; j++) {
+		this.neurons[i][j].setValue(function.apply(this.neurons[i][j].getValue()));
 	    }
 
 	}
@@ -154,24 +168,35 @@ public abstract class Layer {
 	return function.apply(arr);
     }
 
-    public double[][] getNeurons() {
-	return neurons;
+    public Neuron[][] getNeurons() {
+	return this.neurons;
     }
 
     public double[][] getWeights() {
 	return weights;
     }
 
-    public double[] getBias() {
+    public double[][] getBias() {
 	return bias;
     }
 
     public int getNeuronsCount() {
-	return neurons.length;
+	return this.neurons.length;
     }
 
     public double[][] getOutput() {
 	return output;
+    }
+
+    public double[][] getNeuronsValues() {
+	double[][] results = new double[this.neurons.length][this.neurons[0].length];
+	for (int i = 0; i < results.length; i++) {
+	    for (int j = 0; j < results[0].length; j++) {
+		results[i][j] = this.neurons[i][j].getValue();
+	    }
+	}
+	return results;
+
     }
 
     public void setOutput(double[][] output) {
@@ -179,7 +204,67 @@ public abstract class Layer {
     }
 
     public void setNeurons(double[][] neurons) {
-	this.neurons = neurons;
+	createNeurons(neurons,activation);
+    }
+
+    public void setBias(double[][] bias) {
+	this.bias = bias;
+    }
+
+    public void setWeights(double[][] weights) {
+	this.weights = weights;
+    }
+
+    private void createNeurons(int count) {
+	this.neurons = new Neuron[count][1];
+	for (int i = 0; i < count; i++) {
+	    this.neurons[i][0] = new Neuron(0);
+	}
+    }
+
+    private void createNeurons(double[][] neurons) {
+	this.neurons = new Neuron[neurons.length][neurons[0].length];
+	for (int i = 0; i < neurons.length; i++) {
+	    for (int j = 0; j < neurons[0].length; j++) {
+		var temp = new Neuron(neurons[i][j]);
+		this.neurons[i][j] = temp;
+	    }
+	}
+    }
+
+    private void createNeurons(double[][] neurons, double[][] bias) {
+	this.neurons = new Neuron[neurons.length][neurons[0].length];
+
+	for (int i = 0; i < neurons.length; i++) {
+	    for (int j = 0; j < neurons[0].length; j++) {
+		var temp = new Neuron(neurons[i][j]);
+		this.neurons[i][j] = temp;
+		temp.setBias(bias[i][j]);
+	    }
+	}
+    }
+
+    private void createNeurons(double[][] neurons, ActivationFunction activation) {
+	this.neurons = new Neuron[neurons.length][neurons[0].length];
+	for (int i = 0; i < neurons.length; i++) {
+	    for (int j = 0; j < neurons[0].length; j++) {
+		var temp = new Neuron(neurons[i][j]);
+		this.neurons[i][j] = temp;
+		temp.setFunction(activation);
+	    }
+	}
+    }
+
+    private void createNeurons(double[][] neurons, double[][] bias, ActivationFunction activation) {
+	this.neurons = new Neuron[neurons.length][neurons[0].length];
+	for (int i = 0; i < neurons.length; i++) {
+	    for (int j = 0; j < neurons[0].length; j++) {
+		var temp = new Neuron(neurons[i][j]);
+		this.neurons[i][j] = temp;
+		temp.setBias(bias[i][j]);
+		temp.setFunction(activation);
+	    }
+	}
     }
 
 }
