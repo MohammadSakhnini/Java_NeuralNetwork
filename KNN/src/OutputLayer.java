@@ -13,4 +13,5 @@ public class OutputLayer extends Layer {
 	return ArrayUtil.toArray(getNeuronsValues());
     }
 
+
 }

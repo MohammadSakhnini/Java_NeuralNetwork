@@ -1,62 +1,74 @@
 public class ActivationFunctions {
 
+    public static double identity(double x) {
+	return x;
+    }
+
+    public static double didentity(double x) {
+	return 1;
+    }
+
+    /**
+     * constant gradient = 0.01
+     */
+    public static double elu(double x) {
+	return x > 0 ? x : 0.01 * (Math.exp(x) - 1);
+    }
+
+    /**
+     * constant gradient = 0.01
+     */
+    public static double dElu(double x) {
+	if (x == 0) {
+	    throw new RuntimeException("dElu is not defined for 0");
+	}
+	return x > 0 ? 1 : 0.01 * Math.exp(x);
+    }
+
     public static double relu(double x) {
 	return x > 0 ? x : 0;
     }
 
-    public static double[][] dRelu(double[][] arr) {
-	double[][] results = new double[arr.length][arr[0].length];
-	for (int i = 0; i < arr.length; i++) {
-	    for (int j = 0; j < arr[0].length; j++) {
-		results[i][j] = arr[i][j] * (arr[i][j] > 0 ? 1 : 0);
-	    }
+    public static double dRelu(double x) {
+	if (x == 0) {
+	    throw new RuntimeException("dRelu is not defined for 0");
 	}
-	return results;
+	return x > 0 ? 1 : 0;
     }
 
     /**
      * constant gradient = 0.01
      */
     public static double leakyRelu(double x) {
+	if (x == 0) {
+	    throw new RuntimeException("dRelu is not defined for 0");
+	}
 	return x > (0.01 * x) ? x : (0.01 * x);
     }
 
-    public static double[][] dLeakyRelu(double[][] arr) {
-	double[][] results = new double[arr.length][arr[0].length];
-	for (int i = 0; i < arr.length; i++) {
-	    for (int j = 0; j < arr[0].length; j++) {
-		results[i][j] = arr[i][j] * (arr[i][j] > 0 ? 1 : 0.01);
-	    }
+    /**
+     * constant gradient = 0.01
+     */
+    public static double dLeakyRelu(double x) {
+	if (x == 0) {
+	    throw new RuntimeException("dLeakyRelu is not defined for 0");
 	}
-	return results;
+	return x > 0 ? 1 : 0.01;
     }
 
     public static double sigmoid(double x) {
 	return 1.0 / (1 + Math.exp(-x));
     }
 
-    public static double[][] dSigmoid(double[][] arr) {
-	double[][] results = new double[arr.length][arr[0].length];
-	for (int i = 0; i < arr.length; i++) {
-	    for (int j = 0; j < arr[0].length; j++) {
-		results[i][j] = arr[i][j] * (1 - sigmoid(arr[i][j]));
-	    }
-	}
-	return results;
+    public static double dSigmoid(double x) {
+	return sigmoid(x) * (1 - sigmoid(x));
     }
 
     public static double tanh(double x) {
 	return (Math.exp(x) - Math.exp(-x)) / (Math.exp(x) + Math.exp(-x));
     }
 
-    public static double[][] dTanh(double[][] arr) {
-
-	double[][] results = new double[arr.length][arr[0].length];
-	for (int i = 0; i < arr.length; i++) {
-	    for (int j = 0; j < arr[0].length; j++) {
-		results[i][j] = arr[i][j] * (1 - Math.pow(Math.tanh(arr[i][j]), 2));
-	    }
-	}
-	return results;
+    public static double dTanh(double x) {
+	return 1 - Math.pow(tanh(x), 2);
     }
 }

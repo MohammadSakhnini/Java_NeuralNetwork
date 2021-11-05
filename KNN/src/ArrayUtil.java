@@ -6,7 +6,6 @@ public class ArrayUtil {
 	if (a.length != b.length || a[0].length != b[0].length) {
 	    throw new Exception("Invalid addition. Shape mismatch");
 	}
-
 	for (int i = 0; i < a.length; i++) {
 	    for (int j = 0; j < a[0].length; j++) {
 		results[i][j] = a[i][j] + b[i][j];

@@ -1,3 +1,3 @@
 public enum ActivationFunction {
-    Relu, LeakyRelu, Sigmoid, Tanh
+    Relu, LeakyRelu, Sigmoid, Tanh, ELU, Identity
 }

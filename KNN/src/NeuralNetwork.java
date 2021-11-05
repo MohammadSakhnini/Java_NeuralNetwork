@@ -31,7 +31,7 @@ public class NeuralNetwork {
 	return temp;
     }
 
-    public void train(double[][] target) throws Exception {
+    public void feedForward() throws Exception {
 	checkLayers();
 	double[][] output = null;
 
@@ -53,36 +53,45 @@ public class NeuralNetwork {
 
     }
 
-    // TODO
-    private void backpropagate(double[][] target) throws Exception {
+    public void backpropagate(double[] target) throws Exception {
+	double error = cost(target);
+
+	double[][] gradient = null;
+	double[][] delta = null;
+	double[][] new_weights = null;
+
 	Collections.reverse(layers);
 
-	double[][] delta = null;
-	double[][] gradient = null;
-	int index = 0;
 	for (var layer : layers) {
+	    layer.dActivationFunction();
+	    if (layer instanceof OutputLayer) {
+		gradient = layer.getNeuronsValues();
+		gradient = ArrayUtil.multiply(gradient, error);
+		gradient = ArrayUtil.multiply(gradient, l_rate);
+		continue;
+	    }
+
+	    //delta = (previousLayer * gradient)
+	    //new_weights = gradient * error * l_rate * (delta)
+	    //weights = old_weights + new weights
 	    if (layer instanceof HiddenLayer) {
-		var adjusted_weights = ArrayUtil.add(layer.getWeights(), delta);
-		Layer prev = layers.get(index - 1);
-		prev.setBias(ArrayUtil.add(prev.getBias(), gradient));
-		((HiddenLayer) layer).setWeights(adjusted_weights);
+		var t_layer = ArrayUtil.transpose(layer.getNeuronsValues());
+		delta = ArrayUtil.multiply(t_layer, gradient);
+		new_weights = ArrayUtil.add(layer.getWeights(), delta);
+		layer.setWeights(new_weights);
+		if (layer.getBias() == null) {
+		    layer.setBias(gradient);
+		} else {
+		    layer.setBias(ArrayUtil.add(layer.getBias(), gradient));
+		}
+		var layer_error = ArrayUtil.multiply(layer.getWeights(), error);
+
+		gradient = layer.getNeuronsValues();
+		gradient = ArrayUtil.multiply(gradient, layer_error);
+		gradient = ArrayUtil.multiply(gradient, l_rate);
 	    }
-	    if (layer instanceof InputLayer) {
-
-	    }
-	    var error = ArrayUtil.subtract(target, layer.getOutput());
-	    gradient = layer.dActivationFunction(layer.getOutput());
-
-	    gradient = ArrayUtil.multiply(gradient, error);
-	    gradient = ArrayUtil.multiply(gradient, l_rate);
-
-	    var trans = ArrayUtil.transpose(layer.getNeuronsValues());
-	    delta = ArrayUtil.multiply(gradient, trans);
-	    index++;
-
 	}
 	Collections.reverse(layers);
-
     }
 
     private Layer lastLayer() {
@@ -103,13 +112,15 @@ public class NeuralNetwork {
 
     }
 
-    private double loss(double[] target) {
-	double loss = 0;
-	var predictions = ArrayUtil.toArray(lastLayer().getNeuronsValues());
-	for (int i = 0; i < predictions.length; i++) {
-	    loss += target[i] * Math.log(predictions[i]);
+    public double cost(double[] target) throws Exception {
+	double sum = 0;
+	var output = lastLayer().getOutput();
+	for (int i = 0; i < target.length; i++) {
+	    for (int j = 0; j < output[0].length; j++) {
+		sum += Math.pow(output[i][j] - target[i], 2) / output.length;
+	    }
 	}
-	return -(1.0 / (target.length * loss));
+	return sum;
     }
 
 }

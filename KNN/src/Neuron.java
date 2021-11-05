@@ -3,10 +3,8 @@ public class Neuron {
     private double bias;
     private ActivationFunction activation;
 
-    public Neuron(double value, double bias, ActivationFunction activation) {
-	this(value, activation);
-	this.bias = bias;
-
+    public Neuron(double value) {
+	this.value = value;
     }
 
     public Neuron(double value, ActivationFunction activation) {
@@ -14,8 +12,14 @@ public class Neuron {
 	this.activation = activation;
     }
 
-    public Neuron(double value) {
+    public Neuron(double value, double bias) {
 	this.value = value;
+    }
+
+    public Neuron(double value, double bias, ActivationFunction activation) {
+	this(value, activation);
+	this.bias = bias;
+
     }
 
     public void setBias(double bias) {

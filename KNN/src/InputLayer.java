@@ -8,8 +8,8 @@ public class InputLayer extends Layer {
     /**
      * @implNote The output count of this layer is neurons[0].length (columns)
      */
-    public InputLayer(double[][] inputs, int neurons, WeightGenerator generator) {
-	super(inputs, neurons, generator);
+    public InputLayer(double[][] inputs, int neurons, WeightGenerator generator, ActivationFunction activation) {
+	super(inputs, neurons, generator, activation);
     }
 
     public void forward() throws Exception {

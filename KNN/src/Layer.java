@@ -19,31 +19,30 @@ public abstract class Layer {
      */
     public Layer(int inputs, int neuronscount, WeightGenerator generator, ActivationFunction activation) {
 	double[][] temp = new double[neuronscount][0];
-	createNeurons(temp,activation);
+	createNeurons(temp, activation);
 	weights = new double[inputs][neuronscount];
 	this.generator = generator;
 	this.activation = activation;
 	setup();
     }
 
-    public Layer(double neurons[][], int output, WeightGenerator generator, ActivationFunction activation) {
-	// this(neurons, output, generator);
-	createNeurons(neurons, activation);
-	this.activation = activation;
-	setup();
-    }
-
     public Layer(double neurons[][], int output, WeightGenerator generator) {
-	// this.neurons = neurons;
-	createNeurons(neurons);
-	weights = new double[neurons[0].length][output];
+	createNeurons(neurons, activation);
 	this.generator = generator;
 	setup();
     }
 
+    public Layer(double neurons[][], int output, WeightGenerator generator, ActivationFunction activation) {
+	createNeurons(neurons);
+	weights = new double[neurons[0].length][output];
+	this.generator = generator;
+	this.activation = activation;
+	setup();
+    }
+
+
     public Layer(double neurons[][], int output, double bias[][], WeightGenerator generator,
 	    ActivationFunction activation) {
-	// this(neurons, output, generator, activation);
 	createNeurons(neurons, bias, activation);
 	this.bias = new double[neurons.length][neurons[0].length];
 	for (int i = 0; i < bias.length; i++) {
@@ -125,6 +124,12 @@ public abstract class Layer {
 	}
 	Function<Double, Double> function = null;
 	switch (activation) {
+	case Identity:
+	    function = ActivationFunctions::identity;
+	    break;
+	case ELU:
+	    function = ActivationFunctions::elu;
+	    break;
 	case Relu:
 	    function = ActivationFunctions::relu;
 	    break;
@@ -146,12 +151,18 @@ public abstract class Layer {
 	}
     }
 
-    public double[][] dActivationFunction(double[][] arr) {
-	Function<double[][], double[][]> function = null;
+    public void dActivationFunction() {
+	Function<Double, Double> function = null;
 	if (activation == null) {
-	    return null;
+	    return;
 	}
 	switch (activation) {
+	case Identity:
+	    function = ActivationFunctions::identity;
+	    break;
+	case ELU:
+	    function = ActivationFunctions::elu;
+	    break;
 	case Relu:
 	    function = ActivationFunctions::dRelu;
 	    break;
@@ -165,7 +176,11 @@ public abstract class Layer {
 	    function = ActivationFunctions::dTanh;
 	    break;
 	}
-	return function.apply(arr);
+	for (int i = 0; i < this.neurons.length; i++) {
+	    for (int j = 0; j < this.neurons[0].length; j++) {
+		this.neurons[i][j].setValue(function.apply(this.neurons[i][j].getValue()));
+	    }
+	}
     }
 
     public Neuron[][] getNeurons() {
@@ -204,7 +219,7 @@ public abstract class Layer {
     }
 
     public void setNeurons(double[][] neurons) {
-	createNeurons(neurons,activation);
+	createNeurons(neurons, activation);
     }
 
     public void setBias(double[][] bias) {
@@ -226,8 +241,7 @@ public abstract class Layer {
 	this.neurons = new Neuron[neurons.length][neurons[0].length];
 	for (int i = 0; i < neurons.length; i++) {
 	    for (int j = 0; j < neurons[0].length; j++) {
-		var temp = new Neuron(neurons[i][j]);
-		this.neurons[i][j] = temp;
+		this.neurons[i][j] = new Neuron(neurons[i][j]);
 	    }
 	}
     }
@@ -237,9 +251,7 @@ public abstract class Layer {
 
 	for (int i = 0; i < neurons.length; i++) {
 	    for (int j = 0; j < neurons[0].length; j++) {
-		var temp = new Neuron(neurons[i][j]);
-		this.neurons[i][j] = temp;
-		temp.setBias(bias[i][j]);
+		this.neurons[i][j] = new Neuron(neurons[i][j], bias[i][j]);
 	    }
 	}
     }
@@ -248,9 +260,7 @@ public abstract class Layer {
 	this.neurons = new Neuron[neurons.length][neurons[0].length];
 	for (int i = 0; i < neurons.length; i++) {
 	    for (int j = 0; j < neurons[0].length; j++) {
-		var temp = new Neuron(neurons[i][j]);
-		this.neurons[i][j] = temp;
-		temp.setFunction(activation);
+		this.neurons[i][j] = new Neuron(neurons[i][j], activation);
 	    }
 	}
     }
@@ -259,10 +269,7 @@ public abstract class Layer {
 	this.neurons = new Neuron[neurons.length][neurons[0].length];
 	for (int i = 0; i < neurons.length; i++) {
 	    for (int j = 0; j < neurons[0].length; j++) {
-		var temp = new Neuron(neurons[i][j]);
-		this.neurons[i][j] = temp;
-		temp.setBias(bias[i][j]);
-		temp.setFunction(activation);
+		this.neurons[i][j] = new Neuron(neurons[i][j], bias[i][j], activation);
 	    }
 	}
     }
