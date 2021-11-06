@@ -4,7 +4,7 @@ public class ActivationFunctions {
 	return x;
     }
 
-    public static double didentity(double x) {
+    public static double dIdentity(double x) {
 	return 1;
     }
 

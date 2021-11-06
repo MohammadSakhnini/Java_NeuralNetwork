@@ -103,6 +103,36 @@ public class ArrayUtil {
 	}
     }
 
+    public static String array_toString(double[][] array) {
+	StringBuilder builder = new StringBuilder();
+
+	if (array == null) {
+	    return "";
+	}
+	for (double[] x : array) {
+	    for (double y : x) {
+		builder.append(y + "; ");
+	    }
+	    builder.append("\n");
+	}
+	return builder.toString();
+    }
+
+    public static String array_toString(double[][] array, String stringtitle) {
+	StringBuilder builder = new StringBuilder();
+	if (array == null) {
+	    return "";
+	}
+	for (double[] x : array) {
+	    builder.append(stringtitle + ": ");
+	    for (double y : x) {
+		builder.append(y + "; ");
+	    }
+	    builder.append("\n");
+	}
+	return builder.toString();
+    }
+
     public static double[] toArray(double[][] input) {
 	double[] out = new double[input.length * input[0].length];
 	for (int i = 0; i < input.length; i++) {
@@ -113,11 +143,28 @@ public class ArrayUtil {
 	return out;
     }
 
-    public static double[][] neutralArray(int rows, int columns) {
+    public static double[][] neutralArray(double[][] arr) {
+	for (int i = 0; i < arr.length; i++) {
+	    for (int j = 0; j < arr[0].length; j++) {
+		arr[i][j] = 0;
+	    }
+	}
+	return arr;
+    }
+
+    public static double[][] valuesToArray(String data, String delemiter) {
+	data = FileUtil.removeDuplicates(data, delemiter);
+	String[] values = data.split(delemiter+"|\\n");
+	int rows = data.split("\n").length;
+	int columns = data.split("\n")[0].split(delemiter).length;
+	if (values.length == 0) {
+	    return null;
+	}
 	double[][] results = new double[rows][columns];
+	int index = 0;
 	for (int i = 0; i < rows; i++) {
 	    for (int j = 0; j < columns; j++) {
-		results[i][j] = 1;
+		results[i][j] = Double.parseDouble(values[index++]);
 	    }
 	}
 	return results;

@@ -15,7 +15,7 @@ public class InputLayer extends Layer {
     public void forward() throws Exception {
 	setOutput(ArrayUtil.multiply(super.getNeuronsValues(), super.getWeights()));
 	if (super.getBias() != null) {
-	    ArrayUtil.add(super.getOutput(), super.getBias());
+	    setOutput(ArrayUtil.add(super.getOutput(), super.getBias()));
 	}
 
     }

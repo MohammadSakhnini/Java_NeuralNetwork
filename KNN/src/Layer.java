@@ -33,13 +33,12 @@ public abstract class Layer {
     }
 
     public Layer(double neurons[][], int output, WeightGenerator generator, ActivationFunction activation) {
-	createNeurons(neurons);
+	createNeurons(neurons,activation);
 	weights = new double[neurons[0].length][output];
 	this.generator = generator;
 	this.activation = activation;
 	setup();
     }
-
 
     public Layer(double neurons[][], int output, double bias[][], WeightGenerator generator,
 	    ActivationFunction activation) {
@@ -145,6 +144,18 @@ public abstract class Layer {
 	}
 	for (int i = 0; i < this.neurons.length; i++) {
 	    for (int j = 0; j < this.neurons[0].length; j++) {
+		// if a there is an outlier neuron with a different activation funciton
+		if (neurons[i][j].getActivation() != activation) {
+		    ActivationFunctions s = new ActivationFunctions();
+		    try {
+			String name = this.neurons[i][j].getActivation().name().toLowerCase();
+			var method = s.getClass().getMethod(name, double.class);
+			method.invoke(s, this.neurons[i][j].getValue());
+			continue;
+		    } catch (Exception e) {
+			System.out.println(e);
+		    }
+		}
 		this.neurons[i][j].setValue(function.apply(this.neurons[i][j].getValue()));
 	    }
 
@@ -178,6 +189,18 @@ public abstract class Layer {
 	}
 	for (int i = 0; i < this.neurons.length; i++) {
 	    for (int j = 0; j < this.neurons[0].length; j++) {
+		// if a there is an outlier neuron with a different activation funciton
+		if (neurons[i][j].getActivation() != activation) {
+		    ActivationFunctions s = new ActivationFunctions();
+		    try {
+			String name = this.neurons[i][j].getActivation().name().toLowerCase();
+			var method = s.getClass().getMethod(name, double.class);
+			method.invoke(s, this.neurons[i][j].getValue());
+			continue;
+		    } catch (Exception e) {
+			System.out.println(e);
+		    }
+		}
 		this.neurons[i][j].setValue(function.apply(this.neurons[i][j].getValue()));
 	    }
 	}
@@ -196,7 +219,7 @@ public abstract class Layer {
     }
 
     public int getNeuronsCount() {
-	return this.neurons.length;
+	return this.neurons[0].length;
     }
 
     public double[][] getOutput() {
@@ -238,6 +261,7 @@ public abstract class Layer {
     }
 
     private void createNeurons(double[][] neurons) {
+	ArrayUtil.neutralArray(neurons);
 	this.neurons = new Neuron[neurons.length][neurons[0].length];
 	for (int i = 0; i < neurons.length; i++) {
 	    for (int j = 0; j < neurons[0].length; j++) {
@@ -248,7 +272,6 @@ public abstract class Layer {
 
     private void createNeurons(double[][] neurons, double[][] bias) {
 	this.neurons = new Neuron[neurons.length][neurons[0].length];
-
 	for (int i = 0; i < neurons.length; i++) {
 	    for (int j = 0; j < neurons[0].length; j++) {
 		this.neurons[i][j] = new Neuron(neurons[i][j], bias[i][j]);

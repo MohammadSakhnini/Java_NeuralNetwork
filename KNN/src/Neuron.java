@@ -14,6 +14,7 @@ public class Neuron {
 
     public Neuron(double value, double bias) {
 	this.value = value;
+	this.bias = bias;
     }
 
     public Neuron(double value, double bias, ActivationFunction activation) {

@@ -37,17 +37,19 @@ public class NeuralNetwork {
 
 	for (var layer : layers) {
 	    if (layer instanceof InputLayer) {
+		layer.activationFunction();
 		((InputLayer) layer).forward();
 	    }
 	    if (layer instanceof HiddenLayer) {
 		((HiddenLayer) layer).setNeurons(output);
+		layer.activationFunction();
 		((HiddenLayer) layer).forward();
 	    }
 	    if (layer instanceof OutputLayer) {
 		((OutputLayer) layer).setNeurons(output);
 		((OutputLayer) layer).setOutput(layer.getNeuronsValues());
+		layer.activationFunction();
 	    }
-	    layer.activationFunction();
 	    output = layer.getOutput();
 	}
 
@@ -71,9 +73,9 @@ public class NeuralNetwork {
 		continue;
 	    }
 
-	    //delta = (previousLayer * gradient)
-	    //new_weights = gradient * error * l_rate * (delta)
-	    //weights = old_weights + new weights
+	    // delta = (previousLayer * gradient)
+	    // new_weights = gradient * error * l_rate * (delta)
+	    // weights = old_weights + new weights
 	    if (layer instanceof HiddenLayer) {
 		var t_layer = ArrayUtil.transpose(layer.getNeuronsValues());
 		delta = ArrayUtil.multiply(t_layer, gradient);
@@ -121,6 +123,38 @@ public class NeuralNetwork {
 	    }
 	}
 	return sum;
+    }
+
+    public double[][] output() {
+	return lastLayer().getOutput();
+    }
+
+    public String toString() {
+	try {
+	    feedForward();
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+	int index = 1;
+	StringBuilder builder = new StringBuilder("layers:");
+	for (Layer layer : layers) {
+	    builder.append(layer.getNeuronsCount() + ";");
+	}
+	builder.append('\n');
+	builder.append("-------------------------\n");
+	for (Layer layer : layers) {
+	    if (layer instanceof HiddenLayer) {
+		builder.append(layer.getClass().getSimpleName() + index + ":\n");
+		index++;
+	    } else {
+		builder.append(layer.getClass().getSimpleName() + ":\n");
+	    }
+	    builder.append(ArrayUtil.array_toString(layer.getWeights(),"Weights"));
+	    builder.append(ArrayUtil.array_toString(layer.getBias(),"Bias"));
+	    builder.append(ArrayUtil.array_toString(layer.getNeuronsValues(), "Neurons"));
+	    builder.append("-------------------------\n");
+	}
+	return builder.toString();
     }
 
 }
