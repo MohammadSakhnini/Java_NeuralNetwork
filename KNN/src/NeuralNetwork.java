@@ -56,6 +56,7 @@ public class NeuralNetwork {
     }
 
     public void backpropagate(double[] target) throws Exception {
+	feedForward();
 	double error = cost(target);
 
 	double[][] gradient = null;
@@ -64,36 +65,38 @@ public class NeuralNetwork {
 
 	Collections.reverse(layers);
 
+	// delta = (previousLayer * gradient)
+	// new_weights = gradient * error * l_rate * (delta)
+	// weights = old_weights -
+
 	for (var layer : layers) {
-	    layer.dActivationFunction();
 	    if (layer instanceof OutputLayer) {
-		gradient = layer.getNeuronsValues();
+		gradient = layer.dActivationFunction();
 		gradient = ArrayUtil.multiply(gradient, error);
 		gradient = ArrayUtil.multiply(gradient, l_rate);
 		continue;
 	    }
 
-	    // delta = (previousLayer * gradient)
-	    // new_weights = gradient * error * l_rate * (delta)
-	    // weights = old_weights + new weights
-	    if (layer instanceof HiddenLayer) {
-		var t_layer = ArrayUtil.transpose(layer.getNeuronsValues());
-		delta = ArrayUtil.multiply(t_layer, gradient);
-		new_weights = ArrayUtil.add(layer.getWeights(), delta);
-		layer.setWeights(new_weights);
-		if (layer.getBias() == null) {
-		    layer.setBias(gradient);
-		} else {
-		    layer.setBias(ArrayUtil.add(layer.getBias(), gradient));
-		}
-		var layer_error = ArrayUtil.multiply(layer.getWeights(), error);
+	    else {
 
-		gradient = layer.getNeuronsValues();
-		gradient = ArrayUtil.multiply(gradient, layer_error);
+		var t_layer = ArrayUtil.transpose(layer.dActivationFunction());
+		delta = ArrayUtil.multiply(t_layer, gradient);
+		new_weights = ArrayUtil.subtract(layer.getWeights(), ArrayUtil.multiply(delta, l_rate));
+		layer.setWeights(new_weights);
+
+		gradient = layer.dActivationFunction();
+		gradient = ArrayUtil.multiply(gradient, error);
 		gradient = ArrayUtil.multiply(gradient, l_rate);
 	    }
 	}
 	Collections.reverse(layers);
+    }
+
+    public void train(double[] target, int epoch) throws Exception {
+	for (int i = 0; i < epoch; i++) {
+	    backpropagate(target);
+	    feedForward();
+	}
     }
 
     private Layer lastLayer() {
@@ -116,10 +119,11 @@ public class NeuralNetwork {
 
     public double cost(double[] target) throws Exception {
 	double sum = 0;
+	feedForward();
 	var output = lastLayer().getOutput();
 	for (int i = 0; i < target.length; i++) {
 	    for (int j = 0; j < output[0].length; j++) {
-		sum += Math.pow(output[i][j] - target[i], 2) / output.length;
+		sum += Math.pow(target[i] - output[i][j], 2) / output.length;
 	    }
 	}
 	return sum;
@@ -149,8 +153,8 @@ public class NeuralNetwork {
 	    } else {
 		builder.append(layer.getClass().getSimpleName() + ":\n");
 	    }
-	    builder.append(ArrayUtil.array_toString(layer.getWeights(),"Weights"));
-	    builder.append(ArrayUtil.array_toString(layer.getBias(),"Bias"));
+	    builder.append(ArrayUtil.array_toString(layer.getWeights(), "Weights"));
+	    builder.append(ArrayUtil.array_toString(layer.getBias(), "Bias"));
 	    builder.append(ArrayUtil.array_toString(layer.getNeuronsValues(), "Neurons"));
 	    builder.append("-------------------------\n");
 	}

@@ -27,21 +27,11 @@ public class ArrayUtil {
 	return results;
     }
 
-    public static void add(double[][] a, double bias[]) {
-
-	for (int i = 0; i < a.length; i++) {
-	    for (int j = 0; j < a[0].length; j++) {
-		a[i][j] += bias[i];
-	    }
-
-	}
-    }
-
     public static double[][] subtract(double[][] a, double[][] b) throws Exception {
 	double results[][] = new double[a.length][a[0].length];
 
 	if (a.length != b.length || a[0].length != b[0].length) {
-	    throw new Exception("Invalid addition. Shape mismatch");
+	    throw new Exception("Invalid subtraction. Shape mismatch");
 	}
 	for (int i = 0; i < a.length; i++) {
 	    for (int j = 0; j < a[0].length; j++) {
@@ -118,13 +108,13 @@ public class ArrayUtil {
 	return builder.toString();
     }
 
-    public static String array_toString(double[][] array, String stringtitle) {
+    public static String array_toString(double[][] array, String rowtitle) {
 	StringBuilder builder = new StringBuilder();
 	if (array == null) {
 	    return "";
 	}
 	for (double[] x : array) {
-	    builder.append(stringtitle + ": ");
+	    builder.append(rowtitle + ": ");
 	    for (double y : x) {
 		builder.append(y + "; ");
 	    }
@@ -133,11 +123,11 @@ public class ArrayUtil {
 	return builder.toString();
     }
 
-    public static double[] toArray(double[][] input) {
-	double[] out = new double[input.length * input[0].length];
-	for (int i = 0; i < input.length; i++) {
-	    for (int j = 0; j < input[i].length; j++) {
-		out[i + (j * input.length)] = input[i][j];
+    public static double[] toArray(double[][] array) {
+	double[] out = new double[array.length * array[0].length];
+	for (int i = 0; i < array.length; i++) {
+	    for (int j = 0; j < array[i].length; j++) {
+		out[i + (j * array.length)] = array[i][j];
 	    }
 	}
 	return out;
@@ -153,8 +143,8 @@ public class ArrayUtil {
     }
 
     public static double[][] valuesToArray(String data, String delemiter) {
-	data = FileUtil.removeDuplicates(data, delemiter);
-	String[] values = data.split(delemiter+"|\\n");
+	data = FileUtil.removeConsecutiveDuplicates(data, delemiter);
+	String[] values = data.split(delemiter + "|\\n");
 	int rows = data.split("\n").length;
 	int columns = data.split("\n")[0].split(delemiter).length;
 	if (values.length == 0) {
@@ -168,6 +158,14 @@ public class ArrayUtil {
 	    }
 	}
 	return results;
+    }
+
+    public static double[][] fromArray(double[] x) {
+	double[][] temp = new double[x.length][1];
+	for (int i = 0; i < x.length; i++)
+	    temp[i][0] = x[i];
+	return temp;
+
     }
 
 }

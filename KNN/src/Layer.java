@@ -1,3 +1,4 @@
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class Layer {
@@ -23,21 +24,21 @@ public abstract class Layer {
 	weights = new double[inputs][neuronscount];
 	this.generator = generator;
 	this.activation = activation;
-	setup();
+	generate_weights();
     }
 
     public Layer(double neurons[][], int output, WeightGenerator generator) {
 	createNeurons(neurons, activation);
 	this.generator = generator;
-	setup();
+	generate_weights();
     }
 
     public Layer(double neurons[][], int output, WeightGenerator generator, ActivationFunction activation) {
-	createNeurons(neurons,activation);
+	createNeurons(neurons, activation);
 	weights = new double[neurons[0].length][output];
 	this.generator = generator;
 	this.activation = activation;
-	setup();
+	generate_weights();
     }
 
     public Layer(double neurons[][], int output, double bias[][], WeightGenerator generator,
@@ -49,7 +50,7 @@ public abstract class Layer {
 		this.bias[i][j] = bias[i][j];
 	    }
 	}
-	setup();
+	generate_weights();
     }
 
     public Layer(int inputs, int neurons, double bias[][], WeightGenerator generator, ActivationFunction activation) {
@@ -64,57 +65,26 @@ public abstract class Layer {
 	}
     }
 
-    private void setup() {
+    private void generate_weights() {
 	if (generator == null) {
 	    return;
 	}
+
+	Consumer<double[][]> function = null;
 	switch (generator) {
 	case Random:
-	    random_weights_Init();
+	    function = WeightGenerators::random;
 	    break;
 	case He:
-	    he_Weights_Init();
+	    function = WeightGenerators::he;
 	    break;
 	case Xavier:
-	    xavier_Weights_Init();
-	default:
+	    function = WeightGenerators::xavier;
+	case Zeros:
+	    function = WeightGenerators::zeros;
 	    break;
 	}
-    }
-
-    private void random_weights_Init() {
-	for (int i = 0; i < weights.length; i++) {
-	    for (int j = 0; j < weights[0].length; j++) {
-		weights[i][j] = getRandomBetween(-1, 1);
-	    }
-	}
-    }
-
-    private void he_Weights_Init() {
-	int n = weights.length;
-	double min = -(2 / Math.sqrt(n));
-	double max = (2 / Math.sqrt(n));
-	for (int i = 0; i < weights.length; i++) {
-	    for (int j = 0; j < weights[0].length; j++) {
-		weights[i][j] = getRandomBetween(min, max);
-	    }
-
-	}
-    }
-
-    private void xavier_Weights_Init() {
-	int n = weights.length;
-	double min = -(1 / Math.sqrt(n));
-	double max = (1 / Math.sqrt(n));
-	for (int i = 0; i < n; i++) {
-	    for (int j = 0; j < weights[0].length; j++) {
-		weights[i][j] = getRandomBetween(min, max);
-	    }
-	}
-    }
-
-    private double getRandomBetween(double min, double max) {
-	return ((Math.random() * (max - min)) + min);
+	function.accept(weights);
     }
 
     public void activationFunction() {
@@ -162,17 +132,18 @@ public abstract class Layer {
 	}
     }
 
-    public void dActivationFunction() {
+    public double[][] dActivationFunction() {
+	double[][] results = getNeuronsValues();
 	Function<Double, Double> function = null;
 	if (activation == null) {
-	    return;
+	    return null;
 	}
 	switch (activation) {
 	case Identity:
-	    function = ActivationFunctions::identity;
+	    function = ActivationFunctions::dIdentity;
 	    break;
 	case ELU:
-	    function = ActivationFunctions::elu;
+	    function = ActivationFunctions::dElu;
 	    break;
 	case Relu:
 	    function = ActivationFunctions::dRelu;
@@ -201,9 +172,10 @@ public abstract class Layer {
 			System.out.println(e);
 		    }
 		}
-		this.neurons[i][j].setValue(function.apply(this.neurons[i][j].getValue()));
+		results[i][j] = function.apply(this.neurons[i][j].getValue());
 	    }
 	}
+	return results;
     }
 
     public Neuron[][] getNeurons() {

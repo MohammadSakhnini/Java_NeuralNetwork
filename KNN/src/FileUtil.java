@@ -22,7 +22,7 @@ public class FileUtil {
 	return builder.toString();
     }
 
-    public static String removeDuplicates(String data, String delimiter) {
+    public static String removeConsecutiveDuplicates(String data, String delimiter) {
 	return data.replaceAll("(" + delimiter + ")\\1+", "");
     }
 
